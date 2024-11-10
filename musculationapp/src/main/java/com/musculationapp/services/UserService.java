@@ -3,14 +3,18 @@ package com.musculationapp.services;
 import com.musculationapp.models.User;
 import com.musculationapp.repositories.UserRepository;
 import com.musculationapp.exceptions.UserNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public class UserService
 {
 
-	private UserRepository userRepository;
+	private final UserRepository userRepository;
 
+	@Autowired
 	public UserService(UserRepository userRepository)
 	{
 		this.userRepository = userRepository;
@@ -18,39 +22,36 @@ public class UserService
 
 	public void createUser(User user)
 	{
-		userRepository.createUser(user);
+		userRepository.save(user); // save() fonctionne pour la création et la
+									// mise à jour
 	}
 
 	public User getUserById(int id) throws UserNotFoundException
 	{
-		User user = userRepository.getUserById(id);
-		if (user == null)
-		{
-			throw new UserNotFoundException("User with ID " + id + " not found.");
-		}
-		return user;
+		return userRepository.findById(id)
+				.orElseThrow(() -> new UserNotFoundException("User with ID " + id + " not found."));
 	}
 
 	public List<User> getAllUsers()
 	{
-		return userRepository.getAllUsers();
+		return userRepository.findAll();
 	}
 
 	public void updateUser(User user) throws UserNotFoundException
 	{
-		if (userRepository.getUserById(user.getId()) == null)
+		if (!userRepository.existsById(user.getId()))
 		{
 			throw new UserNotFoundException("Cannot update. User with ID " + user.getId() + " not found.");
 		}
-		userRepository.updateUser(user);
+		userRepository.save(user); // save() met à jour si l'ID existe déjà
 	}
 
 	public void deleteUser(int id) throws UserNotFoundException
 	{
-		if (userRepository.getUserById(id) == null)
+		if (!userRepository.existsById(id))
 		{
 			throw new UserNotFoundException("Cannot delete. User with ID " + id + " not found.");
 		}
-		userRepository.deleteUser(id);
+		userRepository.deleteById(id);
 	}
 }
